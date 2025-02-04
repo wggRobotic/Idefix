@@ -17,20 +17,10 @@ log = Logger().setup_logger('Motion controller')
 
 
 class MotionController:
-    boards = 1
 
     is_activated = False
-
-    i2c = None
-    pca9685_1 = None
-    pca9685_2 = None
-
-    pca9685_1_address = None
-    pca9685_1_reference_clock_speed = None
-    pca9685_1_frequency = None
-    pca9685_2_address = None
-    pca9685_2_reference_clock_speed = None
-    pca9685_2_frequency = None
+    serial_port = None
+    baudrate = None
 
     servo_rear_shoulder_left = None
     servo_rear_shoulder_left_pca9685 = None
@@ -115,34 +105,6 @@ class MotionController:
     servo_front_feet_right_min_pulse = None
     servo_front_feet_right_max_pulse = None
     servo_front_feet_right_rest_angle = None
-
-    servo_arm_rotation = None
-    servo_arm_rotation_pca9685 = None
-    servo_arm_rotation_channel = None
-    servo_arm_rotation_min_pulse = None
-    servo_arm_rotation_max_pulse = None
-    servo_arm_rotation_rest_angle = None
-
-    servo_arm_lift = None
-    servo_arm_lift_pca9685 = None
-    servo_arm_lift_channel = None
-    servo_arm_lift_min_pulse = None
-    servo_arm_lift_max_pulse = None
-    servo_arm_lift_rest_angle = None
-
-    servo_arm_range = None
-    servo_arm_range_pca9685 = None
-    servo_arm_range_channel = None
-    servo_arm_range_min_pulse = None
-    servo_arm_range_max_pulse = None
-    servo_arm_range_rest_angle = None
-
-    servo_arm_cam_tilt = None
-    servo_arm_cam_tilt_pca9685 = None
-    servo_arm_cam_tilt_channel = None
-    servo_arm_cam_tilt_min_pulse = None
-    servo_arm_cam_tilt_max_pulse = None
-    servo_arm_cam_tilt_rest_angle = None
 
     def __init__(self, communication_queues):
 
@@ -247,18 +209,6 @@ class MotionController:
 
                 if event['x']:
                     self.body_move_position_left()
-
-                if event['tl']:
-                    self.arm_set_rotation(event['lx'])
-
-                if event['tl']:
-                    self.arm_set_lift(event['ly'])
-
-                if event['tr']:
-                    self.arm_set_range(event['ly'])
-
-                if event['tr']:
-                    self.arm_set_cam_tilt(event['ry'])
 
                 self.move()
 
@@ -394,31 +344,6 @@ class MotionController:
         self.servo_front_feet_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_MAX_PULSE)
         self.servo_front_feet_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_REST_ANGLE)
 
-        if self.servo_arm_rotation_pca9685:
-            self.servo_arm_rotation_pca9685 = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_ROTATION_PCA9685)
-            self.servo_arm_rotation_channel = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_ROTATION_CHANNEL)
-            self.servo_arm_rotation_min_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_ROTATION_MIN_PULSE)
-            self.servo_arm_rotation_max_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_ROTATION_MAX_PULSE)
-            self.servo_arm_rotation_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_ROTATION_REST_ANGLE)
-
-            self.servo_arm_lift_pca9685 = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_LIFT_PCA9685)
-            self.servo_arm_lift_channel = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_LIFT_CHANNEL)
-            self.servo_arm_lift_min_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_LIFT_MIN_PULSE)
-            self.servo_arm_lift_max_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_LIFT_MAX_PULSE)
-            self.servo_arm_lift_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_LIFT_REST_ANGLE)
-
-            self.servo_arm_range_pca9685 = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_RANGE_PCA9685)
-            self.servo_arm_range_channel = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_RANGE_CHANNEL)
-            self.servo_arm_range_min_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_RANGE_MIN_PULSE)
-            self.servo_arm_range_max_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_RANGE_MAX_PULSE)
-            self.servo_arm_range_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_RANGE_REST_ANGLE)
-
-            self.servo_arm_cam_tilt_pca9685 = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_CAM_TILT_PCA9685)
-            self.servo_arm_cam_tilt_channel = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_CAM_TILT_CHANNEL)
-            self.servo_arm_cam_tilt_min_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_CAM_TILT_MIN_PULSE)
-            self.servo_arm_cam_tilt_max_pulse = Config().get(Config.ARM_CONTROLLER_SERVOS_ARM_CAM_TILT_MAX_PULSE)
-            self.servo_arm_cam_tilt_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_CAM_TILT_REST_ANGLE)
-
     def activate_servos(self):
 
         if self.servo_rear_shoulder_left_pca9685 == 1:
@@ -495,31 +420,6 @@ class MotionController:
             self.servo_front_feet_right = servo.Servo(self.pca9685_2.channels[self.servo_front_feet_right_channel])
         self.servo_front_feet_right.set_pulse_width_range(min_pulse=self.servo_front_feet_right_min_pulse, max_pulse=self.servo_front_feet_right_max_pulse)
 
-        if self.servo_arm_rotation_pca9685:
-
-            if self.servo_arm_rotation_pca9685 == 1:
-                self.servo_arm_rotation = servo.Servo(self.pca9685_1.channels[self.servo_arm_rotation_channel])
-            else:
-                self.servo_arm_rotation = servo.Servo(self.pca9685_2.channels[self.servo_arm_rotation_channel])
-            self.servo_arm_rotation.set_pulse_width_range(min_pulse=self.servo_arm_rotation_min_pulse, max_pulse=self.servo_arm_rotation_max_pulse)
-
-            if self.servo_arm_lift_pca9685 == 1:
-                self.servo_arm_lift = servo.Servo(self.pca9685_1.channels[self.servo_arm_lift_channel])
-            else:
-                self.servo_arm_lift = servo.Servo(self.pca9685_2.channels[self.servo_arm_lift_channel])
-            self.servo_arm_lift.set_pulse_width_range(min_pulse=self.servo_arm_lift_min_pulse, max_pulse=self.servo_arm_lift_max_pulse)
-
-            if self.servo_arm_range_pca9685 == 1:
-                self.servo_arm_range = servo.Servo(self.pca9685_1.channels[self.servo_arm_range_channel])
-            else:
-                self.servo_arm_range = servo.Servo(self.pca9685_2.channels[self.servo_arm_range_channel])
-            self.servo_arm_range.set_pulse_width_range(min_pulse=self.servo_arm_range_min_pulse, max_pulse=self.servo_arm_range_max_pulse)
-
-            if self.servo_arm_cam_tilt_pca9685 == 1:
-                self.servo_arm_cam_tilt = servo.Servo(self.pca9685_1.channels[self.servo_arm_cam_tilt_channel])
-            else:
-                self.servo_arm_cam_tilt = servo.Servo(self.pca9685_2.channels[self.servo_arm_cam_tilt_channel])
-            self.servo_arm_cam_tilt.set_pulse_width_range(min_pulse=self.servo_arm_cam_tilt_min_pulse, max_pulse=self.servo_arm_cam_tilt_max_pulse)
 
     def move(self):
 
@@ -583,27 +483,6 @@ class MotionController:
         except ValueError as e:
             log.error('Impossible servo_front_feet_right angle requested')
 
-        if self.servo_arm_rotation_pca9685:
-            try:
-                self.servo_arm_rotation.angle = self.servo_arm_rotation_rest_angle
-            except ValueError as e:
-                log.error('Impossible servo_arm_rotation angle requested')
-
-            try:
-                self.servo_arm_lift.angle = self.servo_arm_lift_rest_angle
-            except ValueError as e:
-                log.error('Impossible arm_lift angle requested')
-
-            try:
-                self.servo_arm_range.angle = self.servo_arm_range_rest_angle
-            except ValueError as e:
-                log.error('Impossible servo_arm_range angle requested')
-
-            try:
-                self.servo_arm_cam_tilt.angle = self.servo_arm_cam_tilt_rest_angle
-            except ValueError as e:
-                log.error('Impossible servo_arm_cam_tilt angle requested')
-
     def rest_position(self):
 
         self.servo_rear_shoulder_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_REST_ANGLE)
@@ -618,12 +497,6 @@ class MotionController:
         self.servo_front_shoulder_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_REST_ANGLE)
         self.servo_front_leg_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_REST_ANGLE)
         self.servo_front_feet_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_REST_ANGLE)
-
-        if self.servo_arm_rotation_pca9685:
-            self.servo_arm_rotation.angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_ROTATION_REST_ANGLE)
-            self.servo_arm_lift.angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_LIFT_REST_ANGLE)
-            self.servo_arm_range.angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_RANGE_REST_ANGLE)
-            self.servo_arm_cam_tilt.angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_ARM_CAM_TILT_REST_ANGLE)
 
     def body_move_body_up_and_down(self, raw_value):
 
@@ -786,42 +659,3 @@ class MotionController:
         self.servo_front_leg_right.angle = self.servo_front_leg_right_rest_angle + variation_leg - 5
         self.servo_front_feet_right.angle = self.servo_front_feet_right_rest_angle - variation_feet + 5
 
-    def arm_set_rotation(self, raw_value):
-
-        if not self.servo_arm_rotation_pca9685:
-            return
-
-        left_position = int(General().maprange((-1, 1), (0, 180), raw_value / 2))
-
-        if int(self.servo_arm_rotation.angle) != int(left_position):
-            self.servo_arm_rotation.angle = left_position
-
-    def arm_set_lift(self, raw_value):
-
-        if not self.servo_arm_rotation_pca9685:
-            return
-
-        lift_position = int(General().maprange((-1, 1), (180, 0), raw_value / 2))
-
-        if int(self.servo_arm_lift.angle) != int(lift_position):
-            self.servo_arm_lift.angle = lift_position
-
-    def arm_set_range(self, raw_value):
-
-        if not self.servo_arm_rotation_pca9685:
-            return
-
-        range_position = int(General().maprange((-1, 1), (180, 0), raw_value / 2))
-
-        if int(self.servo_arm_range.angle) != int(range_position):
-            self.servo_arm_range.angle = range_position
-
-    def arm_set_cam_tilt(self, raw_value):
-
-        if not self.servo_arm_rotation_pca9685:
-            return
-
-        tilt_position = int(General().maprange((-1, 1), (100, 150), raw_value))
-
-        if int(self.servo_arm_cam_tilt.angle) != int(tilt_position):
-            self.servo_arm_cam_tilt.angel = tilt_position
