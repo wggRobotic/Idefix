@@ -4,8 +4,7 @@ import sys
 import queue
 import busio
 from board import SCL, SDA
-from adafruit_pca9685 import PCA9685
-from adafruit_motor import servo
+import serial
 import time
 
 from spotmicroai.utilities.log import Logger
