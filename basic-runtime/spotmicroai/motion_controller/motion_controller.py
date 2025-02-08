@@ -2,8 +2,8 @@ import signal
 import sys
 
 import queue
-import busio
-from board import SCL, SDA
+#import busio
+#from board import SCL, SDA
 import serial
 import time
 
@@ -11,6 +11,7 @@ from spotmicroai.utilities.log import Logger
 from spotmicroai.utilities.config import Config
 import spotmicroai.utilities.queues as queues
 from spotmicroai.utilities.general import General
+from STservo_sdk import *
 
 log = Logger().setup_logger('Motion controller')
 
@@ -18,91 +19,84 @@ log = Logger().setup_logger('Motion controller')
 class MotionController:
 
     is_activated = False
-    serial_port = None
-    baudrate = None
+    
+    bus_servo_adapter_1_serial_port = None
+    bus_servo_adapter_1_baudrate = None
+    
+    
+    bus_servo_adapter_2_serial_port = None
+    bus_servo_adapter_2_baudrate = None
 
-    servo_rear_shoulder_left = None
-    servo_rear_shoulder_left_pca9685 = None
-    servo_rear_shoulder_left_channel = None
-    servo_rear_shoulder_left_min_pulse = None
-    servo_rear_shoulder_left_max_pulse = None
+    servo_rear_shoulder_left_bus_servo_adapter = None
+    servo_rear_shoulder_left_id = None
+    servo_rear_shoulder_left_min_angle = None
+    servo_rear_shoulder_left_max_angle = None
     servo_rear_shoulder_left_rest_angle = None
 
-    servo_rear_leg_left = None
-    servo_rear_leg_left_pca9685 = None
-    servo_rear_leg_left_channel = None
-    servo_rear_leg_left_min_pulse = None
-    servo_rear_leg_left_max_pulse = None
+    servo_rear_leg_left_bus_servo_adapter = None
+    servo_rear_leg_left_id = None
+    servo_rear_leg_left_min_angle = None
+    servo_rear_leg_left_max_angle = None
     servo_rear_leg_left_rest_angle = None
 
-    servo_rear_feet_left = None
-    servo_rear_feet_left_pca9685 = None
-    servo_rear_feet_left_channel = None
-    servo_rear_feet_left_min_pulse = None
-    servo_rear_feet_left_max_pulse = None
+    servo_rear_feet_left_bus_servo_adapter = None
+    servo_rear_feet_left_id = None
+    servo_rear_feet_left_min_angle = None
+    servo_rear_feet_left_max_angle = None
     servo_rear_feet_left_rest_angle = None
 
-    servo_rear_shoulder_right = None
-    servo_rear_shoulder_right_pca9685 = None
-    servo_rear_shoulder_right_channel = None
-    servo_rear_shoulder_right_min_pulse = None
-    servo_rear_shoulder_right_max_pulse = None
+    servo_rear_shoulder_right_bus_servo_adapter = None
+    servo_rear_shoulder_right_id = None
+    servo_rear_shoulder_right_min_angle = None
+    servo_rear_shoulder_right_max_angle = None
     servo_rear_shoulder_right_rest_angle = None
 
-    servo_rear_leg_right = None
-    servo_rear_leg_right_pca9685 = None
-    servo_rear_leg_right_channel = None
-    servo_rear_leg_right_min_pulse = None
-    servo_rear_leg_right_max_pulse = None
+    servo_rear_leg_right_bus_servo_adapter = None
+    servo_rear_leg_right_id = None
+    servo_rear_leg_right_min_angle = None
+    servo_rear_leg_right_max_angle = None
     servo_rear_leg_right_rest_angle = None
 
-    servo_rear_feet_right = None
-    servo_rear_feet_right_pca9685 = None
-    servo_rear_feet_right_channel = None
-    servo_rear_feet_right_min_pulse = None
-    servo_rear_feet_right_max_pulse = None
+    servo_rear_feet_right_bus_servo_adapter = None
+    servo_rear_feet_right_id = None
+    servo_rear_feet_right_min_angle = None
+    servo_rear_feet_right_max_angle = None
     servo_rear_feet_right_rest_angle = None
 
-    servo_front_shoulder_left = None
-    servo_front_shoulder_left_pca9685 = None
-    servo_front_shoulder_left_channel = None
-    servo_front_shoulder_left_min_pulse = None
-    servo_front_shoulder_left_max_pulse = None
+    servo_front_shoulder_left_bus_servo_adapter = None
+    servo_front_shoulder_left_id = None
+    servo_front_shoulder_left_min_angle = None
+    servo_front_shoulder_left_max_angle = None
     servo_front_shoulder_left_rest_angle = None
 
-    servo_front_leg_left = None
-    servo_front_leg_left_pca9685 = None
-    servo_front_leg_left_channel = None
-    servo_front_leg_left_min_pulse = None
-    servo_front_leg_left_max_pulse = None
+    servo_front_leg_left_bus_servo_adapter = None
+    servo_front_leg_left_id = None
+    servo_front_leg_left_min_angle = None
+    servo_front_leg_left_max_angle = None
     servo_front_leg_left_rest_angle = None
 
-    servo_front_feet_left = None
-    servo_front_feet_left_pca9685 = None
-    servo_front_feet_left_channel = None
-    servo_front_feet_left_min_pulse = None
-    servo_front_feet_left_max_pulse = None
+    servo_front_feet_left_bus_servo_adapter = None
+    servo_front_feet_left_id = None
+    servo_front_feet_left_min_angle = None
+    servo_front_feet_left_max_angle = None
     servo_front_feet_left_rest_angle = None
 
-    servo_front_shoulder_right = None
-    servo_front_shoulder_right_pca9685 = None
-    servo_front_shoulder_right_channel = None
-    servo_front_shoulder_right_min_pulse = None
-    servo_front_shoulder_right_max_pulse = None
+    servo_front_shoulder_right_bus_servo_adapter = None
+    servo_front_shoulder_right_id = None
+    servo_front_shoulder_right_min_angle = None
+    servo_front_shoulder_right_max_angle = None
     servo_front_shoulder_right_rest_angle = None
 
-    servo_front_leg_right = None
-    servo_front_leg_right_pca9685 = None
-    servo_front_leg_right_channel = None
-    servo_front_leg_right_min_pulse = None
-    servo_front_leg_right_max_pulse = None
+    servo_front_leg_right_bus_servo_adapter = None
+    servo_front_leg_right_id = None
+    servo_front_leg_right_min_angle = None
+    servo_front_leg_right_max_angle = None
     servo_front_leg_right_rest_angle = None
 
-    servo_front_feet_right = None
-    servo_front_feet_right_pca9685 = None
-    servo_front_feet_right_channel = None
-    servo_front_feet_right_min_pulse = None
-    servo_front_feet_right_max_pulse = None
+    servo_front_feet_right_bus_servo_adapter = None
+    servo_front_feet_right_id = None
+    servo_front_feet_right_min_angle = None
+    servo_front_feet_right_max_angle = None
     servo_front_feet_right_rest_angle = None
 
     def __init__(self, communication_queues):
@@ -115,7 +109,7 @@ class MotionController:
             signal.signal(signal.SIGTERM, self.exit_gracefully)
 
             self.i2c = busio.I2C(SCL, SDA)
-            self.load_pca9685_boards_configuration()
+            self.load_bus_servo_adapter_boards_configuration()
             self.load_servos_configuration()
 
             self._abort_queue = communication_queues[queues.ABORT_CONTROLLER]
@@ -223,21 +217,20 @@ class MotionController:
                 log.error('Unknown problem while processing the queue of the motion controller')
                 log.error(' - Most likely a servo is not able to get to the assigned position')
 
-    def load_pca9685_boards_configuration(self):
-        self.pca9685_1_address = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_PCA9685_1_ADDRESS), 0)
-        self.pca9685_1_reference_clock_speed = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_PCA9685_1_REFERENCE_CLOCK_SPEED))
-        self.pca9685_1_frequency = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_PCA9685_1_FREQUENCY))
+    def load_bus_servo_adapter_boards_configuration(self):
+        self.bus_servo_adapter_1_serial_port = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_1_SERIAL_PORT), 0)
+        self.bus_servo_adapter_1_baudrate = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_1_BAUDRATE))
 
-        self.pca9685_2_address = False
+        self.bus_servo_adapter_2_serial_port = False
         try:
-            self.pca9685_2_address = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_PCA9685_2_ADDRESS), 0)
+            self.bus_servo_adapter_2_serial_port = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_2_SERIAL_PORT), 0)
 
-            if self.pca9685_2_address:
-                self.pca9685_2_reference_clock_speed = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_PCA9685_2_REFERENCE_CLOCK_SPEED))
-                self.pca9685_2_frequency = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_PCA9685_2_FREQUENCY))
+            if self.bus_servo_adapter_2_serial_port:
+                self.bus_servo_adapter_2_serial_port = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_2_SERIAL_PORT), 0)
+                self.bus_servo_adapter_2_baudrate = int(Config().get(Config.MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_2_BAUDRATE))
 
         except Exception as e:
-            log.debug("Only 1 PCA9685 is present in the configuration")
+            log.debug("Only 1 Bus servo adapter is present in the configuration")
 
     def activate_pca9685_boards(self):
 
@@ -271,76 +264,76 @@ class MotionController:
 
     def load_servos_configuration(self):
 
-        self.servo_rear_shoulder_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_PCA9685)
-        self.servo_rear_shoulder_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_CHANNEL)
-        self.servo_rear_shoulder_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_MIN_PULSE)
-        self.servo_rear_shoulder_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_MAX_PULSE)
+        self.servo_rear_shoulder_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_BUS_SERVO_ADAPTER)
+        self.servo_rear_shoulder_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_ID)
+        self.servo_rear_shoulder_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_MIN_ANGLE)
+        self.servo_rear_shoulder_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_MAX_ANGLE)
         self.servo_rear_shoulder_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_REST_ANGLE)
 
-        self.servo_rear_leg_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_PCA9685)
-        self.servo_rear_leg_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_CHANNEL)
-        self.servo_rear_leg_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_MIN_PULSE)
-        self.servo_rear_leg_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_MAX_PULSE)
+        self.servo_rear_leg_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_BUS_SERVO_ADAPTER)
+        self.servo_rear_leg_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_ID)
+        self.servo_rear_leg_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_MIN_ANGLE)
+        self.servo_rear_leg_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_MAX_ANGLE)
         self.servo_rear_leg_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_LEFT_REST_ANGLE)
 
-        self.servo_rear_feet_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_PCA9685)
-        self.servo_rear_feet_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_CHANNEL)
-        self.servo_rear_feet_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_MIN_PULSE)
-        self.servo_rear_feet_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_MAX_PULSE)
+        self.servo_rear_feet_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_BUS_SERVO_ADAPTER)
+        self.servo_rear_feet_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_ID)
+        self.servo_rear_feet_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_MIN_ANGLE)
+        self.servo_rear_feet_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_MAX_ANGLE)
         self.servo_rear_feet_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_LEFT_REST_ANGLE)
 
-        self.servo_rear_shoulder_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_PCA9685)
-        self.servo_rear_shoulder_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_CHANNEL)
-        self.servo_rear_shoulder_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_MIN_PULSE)
-        self.servo_rear_shoulder_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_MAX_PULSE)
+        self.servo_rear_shoulder_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_BUS_SERVO_ADAPTER)
+        self.servo_rear_shoulder_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_ID)
+        self.servo_rear_shoulder_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_MIN_ANGLE)
+        self.servo_rear_shoulder_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_MAX_ANGLE)
         self.servo_rear_shoulder_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_RIGHT_REST_ANGLE)
 
-        self.servo_rear_leg_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_PCA9685)
-        self.servo_rear_leg_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_CHANNEL)
-        self.servo_rear_leg_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_MIN_PULSE)
-        self.servo_rear_leg_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_MAX_PULSE)
+        self.servo_rear_leg_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_BUS_SERVO_ADAPTER)
+        self.servo_rear_leg_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_ID)
+        self.servo_rear_leg_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_MIN_ANGLE)
+        self.servo_rear_leg_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_MAX_ANGLE)
         self.servo_rear_leg_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_LEG_RIGHT_REST_ANGLE)
 
-        self.servo_rear_feet_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_PCA9685)
-        self.servo_rear_feet_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_CHANNEL)
-        self.servo_rear_feet_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_MIN_PULSE)
-        self.servo_rear_feet_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_MAX_PULSE)
+        self.servo_rear_feet_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_BUS_SERVO_ADAPTER)
+        self.servo_rear_feet_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_ID)
+        self.servo_rear_feet_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_MIN_ANGLE)
+        self.servo_rear_feet_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_MAX_ANGLE)
         self.servo_rear_feet_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_REAR_FEET_RIGHT_REST_ANGLE)
 
-        self.servo_front_shoulder_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_PCA9685)
-        self.servo_front_shoulder_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_CHANNEL)
-        self.servo_front_shoulder_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_MIN_PULSE)
-        self.servo_front_shoulder_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_MAX_PULSE)
+        self.servo_front_shoulder_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_BUS_SERVO_ADAPTER)
+        self.servo_front_shoulder_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_ID)
+        self.servo_front_shoulder_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_MIN_ANGLE)
+        self.servo_front_shoulder_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_MAX_ANGLE)
         self.servo_front_shoulder_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_LEFT_REST_ANGLE)
 
-        self.servo_front_leg_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_PCA9685)
-        self.servo_front_leg_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_CHANNEL)
-        self.servo_front_leg_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_MIN_PULSE)
-        self.servo_front_leg_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_MAX_PULSE)
+        self.servo_front_leg_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_BUS_SERVO_ADAPTER)
+        self.servo_front_leg_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_ID)
+        self.servo_front_leg_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_MIN_ANGLE)
+        self.servo_front_leg_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_MAX_ANGLE)
         self.servo_front_leg_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_LEFT_REST_ANGLE)
 
-        self.servo_front_feet_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_PCA9685)
-        self.servo_front_feet_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_CHANNEL)
-        self.servo_front_feet_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_MIN_PULSE)
-        self.servo_front_feet_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_MAX_PULSE)
+        self.servo_front_feet_left_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_BUS_SERVO_ADAPTER)
+        self.servo_front_feet_left_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_ID)
+        self.servo_front_feet_left_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_MIN_ANGLE)
+        self.servo_front_feet_left_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_MAX_ANGLE)
         self.servo_front_feet_left_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_LEFT_REST_ANGLE)
 
-        self.servo_front_shoulder_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_PCA9685)
-        self.servo_front_shoulder_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_CHANNEL)
-        self.servo_front_shoulder_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_MIN_PULSE)
-        self.servo_front_shoulder_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_MAX_PULSE)
+        self.servo_front_shoulder_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_BUS_SERVO_ADAPTER)
+        self.servo_front_shoulder_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_ID)
+        self.servo_front_shoulder_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_MIN_ANGLE)
+        self.servo_front_shoulder_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_MAX_ANGLE)
         self.servo_front_shoulder_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_SHOULDER_RIGHT_REST_ANGLE)
 
-        self.servo_front_leg_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_PCA9685)
-        self.servo_front_leg_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_CHANNEL)
-        self.servo_front_leg_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_MIN_PULSE)
-        self.servo_front_leg_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_MAX_PULSE)
+        self.servo_front_leg_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_BUS_SERVO_ADAPTER)
+        self.servo_front_leg_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_ID)
+        self.servo_front_leg_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_MIN_ANGLE)
+        self.servo_front_leg_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_MAX_ANGLE)
         self.servo_front_leg_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_LEG_RIGHT_REST_ANGLE)
 
-        self.servo_front_feet_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_PCA9685)
-        self.servo_front_feet_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_CHANNEL)
-        self.servo_front_feet_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_MIN_PULSE)
-        self.servo_front_feet_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_MAX_PULSE)
+        self.servo_front_feet_right_pca9685 = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_BUS_SERVO_ADAPTER)
+        self.servo_front_feet_right_channel = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_ID)
+        self.servo_front_feet_right_min_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_MIN_ANGLE)
+        self.servo_front_feet_right_max_pulse = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_MAX_ANGLE)
         self.servo_front_feet_right_rest_angle = Config().get(Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_REST_ANGLE)
 
     def activate_servos(self):

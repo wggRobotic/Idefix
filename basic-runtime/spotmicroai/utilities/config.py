@@ -23,10 +23,10 @@ class Config(metaclass=Singleton):
     LCD_SCREEN_CONTROLLER_I2C_ADDRESS = 'lcd_screen_controller[0].lcd_screen[0].address'
     REMOTE_CONTROLLER_CONTROLLER_DEVICE = 'remote_controller_controller[0].remote_controller[0].device'
 
-    MOTION_CONTROLLER_BOARDS_bus_servo_adapter_1_SERIAL_PORT = 'motion_controller[*].boards[*].bus_servo_adapter_1[*].serial_port | [0] | [0] | [0]'
-    MOTION_CONTROLLER_BOARDS_bus_servo_adapter_1_BAUDRATE = 'motion_controller[*].boards[*].bus_servo_adapter_1[*].baudrate | [0] | [0] | [0]'
-    MOTION_CONTROLLER_BOARDS_bus_servo_adapter_2_SERIAL_PORT = 'motion_controller[*].boards[*].bus_servo_adapter_2[*].serial_port | [0] | [0] | [0]'
-    MOTION_CONTROLLER_BOARDS_bus_servo_adapter_2_BAUDRATE = 'motion_controller[*].boards[*].bus_servo_adapter_2[*].baudrate | [0] | [0] | [0]'
+    MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_1_SERIAL_PORT = 'motion_controller[*].boards[*].bus_servo_adapter_1[*].serial_port | [0] | [0] | [0]'
+    MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_1_BAUDRATE = 'motion_controller[*].boards[*].bus_servo_adapter_1[*].baudrate | [0] | [0] | [0]'
+    MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_2_SERIAL_PORT = 'motion_controller[*].boards[*].bus_servo_adapter_2[*].serial_port | [0] | [0] | [0]'
+    MOTION_CONTROLLER_BOARDS_BUS_SERVO_ADAPTER_2_BAUDRATE = 'motion_controller[*].boards[*].bus_servo_adapter_2[*].baudrate | [0] | [0] | [0]'
 
     MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_BUS_SERVO_ADAPTER = 'motion_controller[*].servos[*].rear_shoulder_left[*].bus_servo_adapter | [0] | [0] | [0]'
     MOTION_CONTROLLER_SERVOS_REAR_SHOULDER_LEFT_ID = 'motion_controller[*].servos[*].rear_shoulder_left[*].id | [0] | [0] | [0]'
