@@ -528,14 +528,13 @@ class MotionController:
             Config.MOTION_CONTROLLER_SERVOS_FRONT_FEET_RIGHT_REST_ANGLE
         )
 
-    def move_servo(self,bus_servo_adapter, servo_id, rest_angle):
+    def move_servo(self, bus_servo_adapter, servo_id, rest_angle):
         result = bus_servo_adapter.SyncWritePosEx(
             servo_id, rest_angle, self.sts_moving_speed, self.sts_moving_acc
         )
 
         if result != True:
             log.error(f"Impossible angle requested for servo {servo_id}")
-
 
     def move(self):
         servos = [
@@ -615,7 +614,9 @@ class MotionController:
         if sts_comm_result_1 != COMM_SUCCESS:
             print(
                 "%s"
-                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(sts_comm_result_1)
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
             )
 
         sts_comm_result_2 = (
@@ -624,7 +625,9 @@ class MotionController:
         if sts_comm_result_2 != COMM_SUCCESS:
             print(
                 "%s"
-                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(sts_comm_result_2)
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
             )
 
         self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
@@ -632,7 +635,6 @@ class MotionController:
         time.sleep(0.002)
 
         # TODO: check if the servos are in the requested position
-
 
     def rest_position(self):
 
@@ -870,47 +872,180 @@ class MotionController:
         variation_leg = 50
         variation_feet = 70
 
-        self.servo_rear_shoulder_left.angle = (
-            self.servo_rear_shoulder_left_rest_angle + 10
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_shoulder_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_shoulder_left_id,
+            (self.servo_rear_shoulder_left_rest_angle + 10),
         )
-        self.servo_rear_leg_left.angle = (
-            self.servo_rear_leg_left_rest_angle - variation_leg
-        )
-        self.servo_rear_feet_left.angle = (
-            self.servo_rear_feet_left_rest_angle + variation_feet
-        )
-
-        self.servo_rear_shoulder_right.angle = (
-            self.servo_rear_shoulder_right_rest_angle - 10
-        )
-        self.servo_rear_leg_right.angle = (
-            self.servo_rear_leg_right_rest_angle + variation_leg
-        )
-        self.servo_rear_feet_right.angle = (
-            self.servo_rear_feet_right_rest_angle - variation_feet
-        )
-
-        time.sleep(0.05)
-
-        self.servo_front_shoulder_left.angle = (
-            self.servo_front_shoulder_left_rest_angle - 10
-        )
-        self.servo_front_leg_left.angle = (
-            self.servo_front_leg_left_rest_angle - variation_leg + 5
-        )
-        self.servo_front_feet_left.angle = (
-            self.servo_front_feet_left_rest_angle + variation_feet - 5
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_leg_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_leg_left_id,
+            (self.servo_rear_leg_left_rest_angle - variation_leg),
         )
 
-        self.servo_front_shoulder_right.angle = (
-            self.servo_front_shoulder_right_rest_angle + 10
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_feet_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_feet_left_id,
+            (self.servo_rear_feet_left_rest_angle + variation_feet),
         )
-        self.servo_front_leg_right.angle = (
-            self.servo_front_leg_right_rest_angle + variation_leg - 5
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_shoulder_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_shoulder_right_id,
+            (self.servo_rear_shoulder_right_rest_angle - 10),
         )
-        self.servo_front_feet_right.angle = (
-            self.servo_front_feet_right_rest_angle - variation_feet + 5
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_leg_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_leg_right_id,
+            (self.servo_rear_leg_right_rest_angle + variation_leg),
         )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_feet_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_feet_right_id,
+            (self.servo_rear_feet_right_rest_angle - variation_feet),
+        )
+
+        sts_comm_result_1 = (
+            self.bus_servo_adapter_1_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_1 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
+            )
+
+        sts_comm_result_2 = (
+            self.bus_servo_adapter_2_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_2 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
+            )
+
+        self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
+        self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
+        time.sleep(0.002)
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_shoulder_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_shoulder_left_id,
+            (self.servo_front_shoulder_left_rest_angle - 10),
+        )
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_leg_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_leg_left_id,
+            (self.servo_front_leg_left_rest_angle - variation_leg + 5),
+        )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_feet_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_feet_left_id,
+            (self.servo_front_feet_left_rest_angle + variation_feet - 5),
+        )
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_shoulder_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_shoulder_right_id,
+            (self.servo_front_shoulder_right_rest_angle + 10),
+        )
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_leg_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_leg_right_id,
+            (self.servo_front_leg_right_rest_angle + variation_leg - 5),
+        )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_feet_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_feet_right_id,
+            (self.servo_front_feet_right_rest_angle - variation_feet + 5),
+        )
+
+        sts_comm_result_1 = (
+            self.bus_servo_adapter_1_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_1 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
+            )
+
+        sts_comm_result_2 = (
+            self.bus_servo_adapter_2_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_2 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
+            )
+
+        self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
+        self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
+        time.sleep(0.002)
+
 
     def body_move_position_right(self):
 
@@ -918,48 +1053,183 @@ class MotionController:
 
         variation_leg = 50
         variation_feet = 70
-
-        self.servo_rear_shoulder_left.angle = (
-            self.servo_rear_shoulder_left_rest_angle + 10 + move
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_shoulder_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_shoulder_left_id,
+            (self.servo_rear_shoulder_left_rest_angle + 10 + move),
         )
-        self.servo_rear_leg_left.angle = (
-            self.servo_rear_leg_left_rest_angle - variation_leg
-        )
-        self.servo_rear_feet_left.angle = (
-            self.servo_rear_feet_left_rest_angle + variation_feet
-        )
-
-        self.servo_rear_shoulder_right.angle = (
-            self.servo_rear_shoulder_right_rest_angle - 10 + move
-        )
-        self.servo_rear_leg_right.angle = (
-            self.servo_rear_leg_right_rest_angle + variation_leg
-        )
-        self.servo_rear_feet_right.angle = (
-            self.servo_rear_feet_right_rest_angle - variation_feet
-        )
-
-        time.sleep(0.05)
-
-        self.servo_front_shoulder_left.angle = (
-            self.servo_front_shoulder_left_rest_angle - 10 - move
-        )
-        self.servo_front_leg_left.angle = (
-            self.servo_front_leg_left_rest_angle - variation_leg + 5
-        )
-        self.servo_front_feet_left.angle = (
-            self.servo_front_feet_left_rest_angle + variation_feet - 5
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_leg_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_leg_left_id,
+            (self.servo_rear_leg_left_rest_angle - variation_leg),
         )
 
-        self.servo_front_shoulder_right.angle = (
-            self.servo_front_shoulder_right_rest_angle + 10 - move
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_feet_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_feet_left_id,
+            (self.servo_rear_feet_left_rest_angle + variation_feet),
         )
-        self.servo_front_leg_right.angle = (
-            self.servo_front_leg_right_rest_angle + variation_leg - 5
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_shoulder_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_shoulder_right_id,
+            (self.servo_rear_shoulder_right_rest_angle - 10 + move),
         )
-        self.servo_front_feet_right.angle = (
-            self.servo_front_feet_right_rest_angle - variation_feet + 5
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_leg_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_leg_right_id,
+            (self.servo_rear_leg_right_rest_angle + variation_leg),
         )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_feet_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_feet_right_id,
+            (self.servo_rear_feet_right_rest_angle - variation_feet),
+        )
+
+        sts_comm_result_1 = (
+            self.bus_servo_adapter_1_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_1 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
+            )
+
+        sts_comm_result_2 = (
+            self.bus_servo_adapter_2_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_2 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
+            )
+
+        self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
+        self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
+        time.sleep(0.002)
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_shoulder_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_shoulder_left_id,
+            (self.servo_front_shoulder_left_rest_angle - 10 - move),
+        )
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_leg_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_leg_left_id,
+            (self.servo_front_leg_left_rest_angle - variation_leg + 5),
+        )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_feet_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_feet_left_id,
+            (self.servo_front_feet_left_rest_angle + variation_feet - 5),
+        )
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_shoulder_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_shoulder_right_id,
+            (self.servo_front_shoulder_right_rest_angle + 10 - move),
+        )
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_leg_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_leg_right_id,
+            (self.servo_front_leg_right_rest_angle + variation_leg - 5),
+        )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_feet_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_feet_right_id,
+            (self.servo_front_feet_right_rest_angle - variation_feet + 5),
+        )
+
+        sts_comm_result_1 = (
+            self.bus_servo_adapter_1_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_1 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
+            )
+
+        sts_comm_result_2 = (
+            self.bus_servo_adapter_2_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_2 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
+            )
+
+        self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
+        self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
+        time.sleep(0.002)
+
+        
 
     def body_move_position_left(self):
 
@@ -967,45 +1237,179 @@ class MotionController:
 
         variation_leg = 50
         variation_feet = 70
-
-        self.servo_rear_shoulder_left.angle = (
-            self.servo_rear_shoulder_left_rest_angle + 10 - move
+        
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_shoulder_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_shoulder_left_id,
+            (self.servo_rear_shoulder_left_rest_angle + 10 - move),
         )
-        self.servo_rear_leg_left.angle = (
-            self.servo_rear_leg_left_rest_angle - variation_leg
-        )
-        self.servo_rear_feet_left.angle = (
-            self.servo_rear_feet_left_rest_angle + variation_feet
-        )
-
-        self.servo_rear_shoulder_right.angle = (
-            self.servo_rear_shoulder_right_rest_angle - 10 - move
-        )
-        self.servo_rear_leg_right.angle = (
-            self.servo_rear_leg_right_rest_angle + variation_leg
-        )
-        self.servo_rear_feet_right.angle = (
-            self.servo_rear_feet_right_rest_angle - variation_feet
-        )
-
-        time.sleep(0.05)
-
-        self.servo_front_shoulder_left.angle = (
-            self.servo_front_shoulder_left_rest_angle - 10 + move
-        )
-        self.servo_front_leg_left.angle = (
-            self.servo_front_leg_left_rest_angle - variation_leg + 5
-        )
-        self.servo_front_feet_left.angle = (
-            self.servo_front_feet_left_rest_angle + variation_feet - 5
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_leg_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_leg_left_id,
+            (self.servo_rear_leg_left_rest_angle - variation_leg),
         )
 
-        self.servo_front_shoulder_right.angle = (
-            self.servo_front_shoulder_right_rest_angle + 10 + move
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_feet_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_feet_left_id,
+            (self.servo_rear_feet_left_rest_angle + variation_feet),
         )
-        self.servo_front_leg_right.angle = (
-            self.servo_front_leg_right_rest_angle + variation_leg - 5
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_shoulder_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_shoulder_right_id,
+            (self.servo_rear_shoulder_right_rest_angle - 10 - move),
         )
-        self.servo_front_feet_right.angle = (
-            self.servo_front_feet_right_rest_angle - variation_feet + 5
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_leg_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_leg_right_id,
+            (self.servo_rear_leg_right_rest_angle + variation_leg),
         )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_rear_feet_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_rear_feet_right_id,
+            (self.servo_rear_feet_right_rest_angle - variation_feet),
+        )
+
+        sts_comm_result_1 = (
+            self.bus_servo_adapter_1_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_1 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
+            )
+
+        sts_comm_result_2 = (
+            self.bus_servo_adapter_2_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_2 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
+            )
+
+        self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
+        self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
+        time.sleep(0.002)
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_shoulder_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_shoulder_left_id,
+            (self.servo_front_shoulder_left_rest_angle - 10 + move),
+        )
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_leg_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_leg_left_id,
+            (self.servo_front_leg_left_rest_angle - variation_leg + 5),
+        )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_feet_left_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_feet_left_id,
+            (self.servo_front_feet_left_rest_angle + variation_feet - 5),
+        )
+        
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_shoulder_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_shoulder_right_id,
+            (self.servo_front_shoulder_right_rest_angle + 10 + move),
+        )
+        
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_leg_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_leg_right_id,
+            (self.servo_front_leg_right_rest_angle + variation_leg - 5),
+        )
+
+        self.move_servo(
+            (
+                self.bus_servo_adapter_1_packet_handler
+                if self.servo_front_feet_right_bus_servo_adapter == 1
+                else self.bus_servo_adapter_2_packet_handler
+            ),
+            self.servo_front_feet_right_id,
+            (self.servo_front_feet_right_rest_angle - variation_feet + 5),
+        )
+
+        sts_comm_result_1 = (
+            self.bus_servo_adapter_1_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_1 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_1_packet_handler.getTxRxResult(
+                    sts_comm_result_1
+                )
+            )
+
+        sts_comm_result_2 = (
+            self.bus_servo_adapter_2_packet_handler.groupSyncWrite.txPacket()
+        )
+        if sts_comm_result_2 != COMM_SUCCESS:
+            print(
+                "%s"
+                % self.bus_servo_adapter_2_packet_handler.getTxRxResult(
+                    sts_comm_result_2
+                )
+            )
+
+        self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
+        self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
+        time.sleep(0.002)
