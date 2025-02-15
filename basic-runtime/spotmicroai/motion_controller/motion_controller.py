@@ -164,8 +164,15 @@ class MotionController:
             try:
 
                 event = self._motion_queue.get(block=True, timeout=60)
+                event_abort = self._abort_queue.get()
 
                 # log.debug(event)
+
+                if event_abort == queues.ABORT_CONTROLLER_ACTION_ACTIVATE:
+                    self.activate_servos()
+
+                if event_abort == queues.ABORT_CONTROLLER_ACTION_ABORT:
+                    self.abort()
 
                 if event["start"]:
                     if self.is_activated:
@@ -1413,3 +1420,35 @@ class MotionController:
         self.bus_servo_adapter_1_packet_handler.groupSyncWrite.clearParam()
         self.bus_servo_adapter_2_packet_handler.groupSyncWrite.clearParam()
         time.sleep(0.002)
+    
+    def set_torque_for_all_servos(packetHandler,portHandler,board_ids, enable_torque):
+        torque_value = 1 if enable_torque else 0
+        action = "enabled" if enable_torque else "disabled"
+        
+        for board_id in board_ids:
+            result, error = packetHandler.write1ByteTxRx(portHandler, board_id, STS_TORQUE_ENABLE, torque_value)
+            if result != COMM_SUCCESS:
+                print(f"[ID:{board_id:03d}] Error setting torque: {packetHandler.getTxRxResult(result)}")
+            elif error:
+                print(f"[ID:{board_id:03d}] Servo returned an error: {packetHandler.getRxPacketError(error)}")
+            else:
+                print(f"[ID:{board_id:03d}] Torque {action} successfully")
+
+    def abort(self):
+        servo_ids_board_1 = [0, 1, 2, 3, 4, 5]
+        servo_ids_board_2 = [0, 1, 2, 3, 4, 5]
+        self.set_torque_for_all_servos(self.bus_servo_adapter_1_packet_handler, self.bus_servo_adapter_1_port_handler, servo_ids_board_1, False)
+        self.set_torque_for_all_servos(self.bus_servo_adapter_2_packet_handler, self.bus_servo_adapter_2_port_handler, servo_ids_board_2, False)
+        
+
+    def activate_servos(self):
+        servo_ids_board_1 = [0, 1, 2, 3, 4, 5]
+        servo_ids_board_2 = [0, 1, 2, 3, 4, 5]
+        self.set_torque_for_all_servos(self.bus_servo_adapter_1_packet_handler, self.bus_servo_adapter_1_port_handler, servo_ids_board_1, True)
+        self.set_torque_for_all_servos(self.bus_servo_adapter_2_packet_handler, self.bus_servo_adapter_2_port_handler, servo_ids_board_2, True)
+        
+
+    
+   
+
+   
