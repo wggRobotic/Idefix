@@ -122,27 +122,27 @@ class MotionController:
 
             self._abort_queue = communication_queues[queues.ABORT_CONTROLLER]
             self._motion_queue = communication_queues[queues.MOTION_CONTROLLER]
-            self._lcd_screen_queue = communication_queues[queues.LCD_SCREEN_CONTROLLER]
 
-            if self.pca9685_2_address:
-                self._lcd_screen_queue.put("motion_controller_1 OK")
-                self._lcd_screen_queue.put("motion_controller_2 OK")
-            else:
-                self._lcd_screen_queue.put("motion_controller_1 OK")
-                self._lcd_screen_queue.put("motion_controller_2 NOK")
+            # self._lcd_screen_queue = communication_queues[queues.LCD_SCREEN_CONTROLLER]
+            # if self.bus_servo_adapter_2_serial_port:
+            #     self._lcd_screen_queue.put("motion_controller_1 OK")
+            #     self._lcd_screen_queue.put("motion_controller_2 OK")
+            # else:
+            #     self._lcd_screen_queue.put("motion_controller_1 OK")
+            #     self._lcd_screen_queue.put("motion_controller_2 NOK")
 
             self._previous_event = {}
 
         except Exception as e:
             log.error("Motion controller initialization problem", e)
-            self._lcd_screen_queue.put("motion_controller_1 NOK")
-            self._lcd_screen_queue.put("motion_controller_2 NOK")
+            # self._lcd_screen_queue.put("motion_controller_1 NOK")
+            # self._lcd_screen_queue.put("motion_controller_2 NOK")
             try:
-                self.pca9685_1.deinit()
+                self.bus_servo_adapter_1_port_handler.closePort()
             finally:
                 try:
                     if self.boards == 2:
-                        self.pca9685_2.deinit()
+                        self.bus_servo_adapter_2_port_handler.closePort()
                 finally:
                     sys.exit(1)
 

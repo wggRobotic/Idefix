@@ -34,10 +34,10 @@ class RemoteControllerController:
 
             self._abort_queue = communication_queues[queues.ABORT_CONTROLLER]
             self._motion_queue = communication_queues[queues.MOTION_CONTROLLER]
-            self._lcd_screen_queue = communication_queues[queues.LCD_SCREEN_CONTROLLER]
+            #self._lcd_screen_queue = communication_queues[queues.LCD_SCREEN_CONTROLLER]
 
         except Exception as e:
-            self._lcd_screen_queue.put(queues.LCD_SCREEN_SHOW_REMOTE_CONTROLLER_CONTROLLER_NOK)
+            #self._lcd_screen_queue.put(queues.LCD_SCREEN_SHOW_REMOTE_CONTROLLER_CONTROLLER_NOK)
             log.error('Remote controller controller initialization problem', e)
             sys.exit(1)
 
@@ -52,13 +52,13 @@ class RemoteControllerController:
         while True:
 
             if self.connected_device and not remote_controller_connected_already:
-                self._lcd_screen_queue.put(queues.LCD_SCREEN_CONTROLLER_ACTION_ON)
-                self._lcd_screen_queue.put(queues.LCD_SCREEN_SHOW_REMOTE_CONTROLLER_CONTROLLER_OK)
+                # self._lcd_screen_queue.put(queues.LCD_SCREEN_CONTROLLER_ACTION_ON)
+                # self._lcd_screen_queue.put(queues.LCD_SCREEN_SHOW_REMOTE_CONTROLLER_CONTROLLER_OK)
                 remote_controller_connected_already = True
             else:
                 time.sleep(2.5)
                 self._abort_queue.put(queues.ABORT_CONTROLLER_ACTION_ABORT)
-                self._lcd_screen_queue.put(queues.LCD_SCREEN_SHOW_REMOTE_CONTROLLER_CONTROLLER_SEARCHING)
+                #self._lcd_screen_queue.put(queues.LCD_SCREEN_SHOW_REMOTE_CONTROLLER_CONTROLLER_SEARCHING)
                 remote_controller_connected_already = False
                 self.check_for_connected_devices()
                 continue
