@@ -1,14 +1,9 @@
 #!/home/pi/spotmicroai/venv/bin/python3 -u
 
-#import busio
-# from board import SCL, SDA
-# from adafruit_pca9685 import PCA9685
-# from adafruit_motor import servo
 from pick import pick
 import time
 import os
 import sys
-#import RPi.GPIO as GPIO
 
 from spotmicroai.utilities.log import Logger
 from spotmicroai.utilities.config import Config
@@ -52,8 +47,8 @@ while True:
             'Please choose the servo to calibrate its rest position: '
 
     screen_options = list(options.values())
-
-    selected_option, selected_index = pick(screen_options, title)
+    result = pick(screen_options, title)
+    selected_option, selected_index  = result[0]
 
     BUS_SERVP_ADAPTER_SERIAL_PORT, BUS_SERVP_ADAPTER_BAUDRATE , ID, MIN_ANGLE, MAX_ANGLE, REST_ANGLE = Config().get_by_section_name(selected_option.split()[0])
 

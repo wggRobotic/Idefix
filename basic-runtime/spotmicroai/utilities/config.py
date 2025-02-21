@@ -116,7 +116,7 @@ class Config(metaclass=Singleton):
     def load_config(self):
         try:
             if not os.path.exists(str(Path.home()) + '/spotmicroai.json'):
-                shutil.copyfile(str(Path.home()) + '/spotmicroai/spotmicroai.default',
+                shutil.copyfile(str(Path.home()) + '/Idefix/basic-runtime/spotmicroai.default',
                                 str(Path.home()) + '/spotmicroai.json')
 
             with open(str(Path.home()) + '/spotmicroai.json') as json_file:
