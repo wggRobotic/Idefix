@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd ~/spotmicroai || exit
-export PYTHONPATH=.
+cd ~/Idefix || exit
+export PYTHONPATH=./basic-runtime
 
-venv/bin/python3 calibration/calibration/calibration.py
+
+~/Idefix/.venv/bin/python3 basic-runtime/calibration/calibration/calibration.py
